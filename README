@@ -1,0 +1,8 @@
+Find planar graphs!
+
+```
+mkdir build
+make planar
+./build/planar
+```
+

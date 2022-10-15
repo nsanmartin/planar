@@ -1,0 +1,7 @@
+* coding conventions
+
+- New type names are prefixed with Tsu (from tsukareru) and Pascal case.
+- Functions are written with snake case.
+- Methods are prefixed with the type name tsuWhatever and in camel case.
+- Constructors for objects that should ve freed are prefixed with
+  newTsuWhatever (cammel case).
