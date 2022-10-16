@@ -8,11 +8,11 @@ SortedPair sortedPairFrom(int a, int b);
 Line compute_line(int x0, int x1, int y0, int y1);
 void tsu_draw_dot(int x, int y, TsuBoard* t, const TsuPencil* pencil);
 
-TsuPlanarGame tsu_planar_game = {0};
+//TsuPlanarGame tsu_planar_game = {0};
 
 TsuPlanarGame* newPlanarGameWith(size_t w, size_t h) {
 
-    TsuBoard* board = newTsuBoard(tsuAllocator(), w, h);
+    TsuBoard* board = newTsuBoard(w, h);
     if (!board) { return NULL; }
     TsuSdlMedia* media = newTsuSdlMedia((Dimensions){ .w = w, .h = h});
     if (!media) {
@@ -20,7 +20,14 @@ TsuPlanarGame* newPlanarGameWith(size_t w, size_t h) {
         return NULL;
     }
 
-    tsu_planar_game = (TsuPlanarGame) {
+    TsuPlanarGame* rv = tsu_malloc(sizeof(TsuPlanarGame));
+    if (!rv) {
+        freeTsuBoard(board);
+        freeTsuSdlMedia(media);
+        return NULL;
+    }
+
+    *rv = (TsuPlanarGame) {
         .board = board,
         .media = media,
         .pencil = { .sz = 4 },
@@ -28,12 +35,13 @@ TsuPlanarGame* newPlanarGameWith(size_t w, size_t h) {
         .keep_running = true
     };
 
-    return &tsu_planar_game;
+    return rv;
 }
 
 void freePlanarGame(TsuPlanarGame* app) {
     freeTsuBoard(app->board);
     freeTsuSdlMedia(app->media);
+    tsu_free(app);
 }
 
 int update(TsuPlanarGame* game) {

@@ -8,7 +8,10 @@ typedef struct {
     void (*dealloc)(void*);
 } TsuAlloc;
 
-TsuAlloc* tsuAllocator();
+TsuAlloc* tsu_allocator();
+
+void* tsu_malloc(size_t n);
+void tsu_free(void* ptr);
 
 #endif
 

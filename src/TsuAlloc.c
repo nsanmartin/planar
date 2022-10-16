@@ -1,9 +1,38 @@
+#include <stdlib.h>
 #include "TsuAlloc.h"
 
-// TsuAlloc tsuAlloc = {
-//     .alloc = malloc,
-//     .dealloc = free
-// };
+#ifdef TSU_MEM_TEST
+#include <stdio.h>
+#define MAX_MALLOC_TIMES 4
+int tsu_malloc_times = MAX_MALLOC_TIMES;
+int tsu_malloc_calls = 0;
+int tsu_free_calls = 0;
+
+void* tsu_malloc(size_t n) {
+    if (tsu_malloc_times > 0) {
+        printf("malloc calls: %d. Remaining: %d\n", ++tsu_malloc_calls, --tsu_malloc_times);
+        return malloc(n);
+    }
+    return NULL;
+}
+
+void tsu_free(void* ptr) {
+    ++tsu_free_calls;
+    printf("free calls: %d (malloc-free: %d)\n", tsu_free_calls, tsu_malloc_calls - tsu_free_calls);
+    free(ptr);
+}
+
+void* tsu_test_realloc(void* ptr, size_t size) {
+    if (tsu_malloc_times > 0) {
+        printf("realloc call. Remaining: %d\n", tsu_malloc_times--);
+        return realloc(ptr, size);
+    }
+    return NULL;
+}
+#else
+void* tsu_malloc(size_t n) { return malloc(n); }
+void tsu_free(void* ptr) { free(ptr); }
+#endif
 
 #define TSU_PLANAR_MEM_SZ 1600000
 
@@ -30,6 +59,6 @@ TsuAlloc tsuAlloc = {
     .dealloc = tsu_static_free
 };
 
-TsuAlloc* tsuAllocator() {
+TsuAlloc* tsu_allocator() {
     return &tsuAlloc;
 }

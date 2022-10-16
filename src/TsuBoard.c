@@ -5,24 +5,28 @@
 
 TsuBoard tsu_board = {0};
 
-TsuBoard* newTsuBoard(TsuAlloc* tsu_alloc, size_t w, size_t h) {
-    Uint32* data = tsu_alloc->alloc(w * h * sizeof(Uint32));
+TsuBoard* newTsuBoard(size_t w, size_t h) {
+    Uint32* data = tsu_malloc(w * h * sizeof(Uint32));
     if (!data) { return NULL; }
     memset(data, 255, w * h * sizeof(Uint32));
 
-    tsu_board = (TsuBoard) {
+    TsuBoard* rv = tsu_malloc(sizeof(TsuBoard));
+    if (!rv) {
+        tsu_free(data);
+        return NULL;
+    }
+
+    *rv = (TsuBoard) {
         .data = data,
         .w = w,
         .h = h,
-        .alloc = tsu_alloc
     };
-    return &tsu_board;
+    return rv;
 }
 
 void freeTsuBoard(TsuBoard* board) {
-    if (board) {
-        board->alloc->dealloc(board->data);
-    }
+    tsu_free(board->data);
+    tsu_free(board);
 }
 
 Uint32* tsuBoardAt(TsuBoard* t, int x, int y) {

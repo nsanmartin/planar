@@ -3,6 +3,7 @@
 //#include <dibmedia.h>
 //#include <dibmem.h>
 
+#include "TsuAlloc.h"
 #include "TsuSdlMedia.h"
 
 
@@ -60,23 +61,22 @@ void freeTsuSdlMedia(TsuSdlMedia* media) {
     SDL_DestroyTexture(media->texture);
     SDL_DestroyRenderer(media->renderer);
     SDL_DestroyWindow(media->window); 
+    tsu_free(media);
 }
 
 
-#define MAX_SDL_MEDIAS 1
-static TsuSdlMedia sdl_media = {0};
-static int sdl_media_created_count = 0;
-
 TsuSdlMedia* newTsuSdlMedia(Dimensions dim) {
-    if (++sdl_media_created_count > MAX_SDL_MEDIAS) {
-        fprintf(stderr, "only %d TsuSdlMedia can be created\n", MAX_SDL_MEDIAS);
+
+    TsuSdlMedia* rv = tsu_malloc(sizeof(TsuSdlMedia));
+    if (!rv) {
         return NULL;
     }
 
-    sdl_media.dim = dim;
+    rv->dim = dim;
 
-    if(sdl_media_init(&sdl_media) != 0) {
+    if(sdl_media_init(rv) != 0) {
+        tsu_free(rv);
         return NULL;
     }
-    return &sdl_media;
+    return rv;
 }

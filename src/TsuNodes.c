@@ -1,31 +1,35 @@
 #include <stdio.h>
 #include "TsuNodes.h"
 
-#define MAX_NODES 1
-static int tsu_nodes_count = 0;
-static TsuNodes tsu_nodes = {0};
+#define NODES_INITIAL_CAPACITY 32
 
-#define MAX_NODES_POINTS 53
+#include "TsuAlloc.h"
 
-static Point nodes_points[MAX_NODES_POINTS] = {0};
-
-TsuNodes* newNodes(int capacity) {
-    if (++tsu_nodes_count > MAX_NODES) {
-        fprintf(stderr, "only %d TsuNodes scan be created\n", MAX_NODES);
-        return NULL;
-    }
-    if (capacity > MAX_NODES) {
+TsuNodes* newNodes() {
+    Point* ps = tsu_malloc(NODES_INITIAL_CAPACITY * sizeof(Point));
+    if (!ps) {
         return NULL;
     }
 
-    tsu_nodes = (TsuNodes) {
+    TsuNodes* rv = tsu_malloc(sizeof(TsuNodes));
+    if (!rv) {
+        tsu_free(ps);
+        NULL;
+    }
+
+    *rv = (TsuNodes) {
         .sz = 0,
-        .ps = nodes_points
+        .capacity = NODES_INITIAL_CAPACITY,
+        .ps = ps
     };
 
-    return &tsu_nodes;
+    return rv;
 }
 
+void freeNodes(TsuNodes* ns) {
+    tsu_free(ns->ps);
+    tsu_free(ns);
+}
 
 // int nodes_push_back(TsuNodes* ns, Point p) {
 // 
