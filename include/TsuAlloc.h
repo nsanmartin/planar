@@ -12,6 +12,7 @@ TsuAlloc* tsu_allocator();
 
 void* tsu_malloc(size_t n);
 void tsu_free(void* ptr);
+void* tsu_realloc(void* ptr, size_t size);
 
 #endif
 

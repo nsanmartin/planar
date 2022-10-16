@@ -7,8 +7,8 @@
 SortedPair sortedPairFrom(int a, int b);
 Line compute_line(int x0, int x1, int y0, int y1);
 void tsu_draw_dot(int x, int y, TsuBoard* t, const TsuPencil* pencil);
-
-//TsuPlanarGame tsu_planar_game = {0};
+void tsu_draw_node(TsuBoard* t, Point p, int sz);
+TsuNodes* sample_nodes();
 
 TsuPlanarGame* newPlanarGameWith(size_t w, size_t h) {
 
@@ -20,8 +20,16 @@ TsuPlanarGame* newPlanarGameWith(size_t w, size_t h) {
         return NULL;
     }
 
+    TsuNodes* nodes = sample_nodes();
+    if (!nodes) {
+        freeTsuBoard(board);
+        freeTsuSdlMedia(media);
+        return NULL;
+    }
+
     TsuPlanarGame* rv = tsu_malloc(sizeof(TsuPlanarGame));
     if (!rv) {
+        freeNodes(nodes);
         freeTsuBoard(board);
         freeTsuSdlMedia(media);
         return NULL;
@@ -32,8 +40,14 @@ TsuPlanarGame* newPlanarGameWith(size_t w, size_t h) {
         .media = media,
         .pencil = { .sz = 4 },
         .mouse = { .is_up = true, .x = 0, .y = 0 },
-        .keep_running = true
+        .keep_running = true,
+        .nodes = nodes
     };
+
+    //todo: move this
+    for (int i = 0; i < rv->nodes->sz; ++i) {
+        tsu_draw_node(rv->board, rv->nodes->ps[i], rv->nodes->node_size);
+    }
 
     return rv;
 }
@@ -126,3 +140,22 @@ int process_input(TsuPlanarGame* game) {
 }
 
 bool keep_running(const TsuPlanarGame* game) { return game->keep_running; }
+
+
+
+TsuNodes* sample_nodes() {
+    TsuNodes* rv = newNodes();
+    if (!rv) { return NULL; }
+    int error = 0;
+    error = nodes_push_back(rv, (Point){10, 10});
+    if (error) {
+        freeNodes(rv);
+        return NULL;
+    }
+    error = nodes_push_back(rv, (Point){100, 190});
+    if (error) {
+        freeNodes(rv);
+        return NULL;
+    }
+    return rv;
+}

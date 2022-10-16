@@ -1,6 +1,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+#include "TsuPoint.h"
 #include "TsuDraw.h"
 #include "TsuPencil.h"
 #include "TsuBoard.h"
@@ -21,6 +22,7 @@ Line compute_line(int x0, int x1, int y0, int y1) {
     return rv;
 }
 
+//todo: parametrize colors
 void tsu_draw_dot(int x, int y, TsuBoard* t, const TsuPencil* pencil) {
     size_t sz = pencil->sz;
     size_t fromx = x - sz;
@@ -33,12 +35,24 @@ void tsu_draw_dot(int x, int y, TsuBoard* t, const TsuPencil* pencil) {
             for (size_t j = fromy; j < toy; ++j) {
                 Uint32* ptr = tsuBoardAt(t, i, j);
                 if (ptr) {
-                    *ptr = 1;
+                    *ptr = 0;
                 } else {
                     fprintf(stderr, "invalid board pos\n");
                 }
             }
             
+        }
+    }
+}
+
+//todo: parametrize colors
+void tsu_draw_node(TsuBoard* t, Point p, int sz) {
+    for (int i = 0; i < sz; ++i) {
+        for (int j = 0; j < sz; ++j) {
+            Uint32* ptr = tsuBoardAt(t, p.x + i, p.y + j);
+            if (ptr) {
+                *ptr = 28900;
+            }
         }
     }
 }

@@ -22,7 +22,7 @@ void tsu_free(void* ptr) {
     free(ptr);
 }
 
-void* tsu_test_realloc(void* ptr, size_t size) {
+void* tsu_realloc(void* ptr, size_t size) {
     if (tsu_malloc_times > 0) {
         printf("realloc call. Remaining: %d\n", tsu_malloc_times--);
         return realloc(ptr, size);
@@ -32,6 +32,7 @@ void* tsu_test_realloc(void* ptr, size_t size) {
 #else
 void* tsu_malloc(size_t n) { return malloc(n); }
 void tsu_free(void* ptr) { free(ptr); }
+void* tsu_realloc(void* ptr, size_t size) { return realloc(ptr, size); }
 #endif
 
 #define TSU_PLANAR_MEM_SZ 1600000

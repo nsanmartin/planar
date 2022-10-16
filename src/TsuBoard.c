@@ -5,6 +5,7 @@
 
 TsuBoard tsu_board = {0};
 
+//todo: parametrize colors
 TsuBoard* newTsuBoard(size_t w, size_t h) {
     Uint32* data = tsu_malloc(w * h * sizeof(Uint32));
     if (!data) { return NULL; }

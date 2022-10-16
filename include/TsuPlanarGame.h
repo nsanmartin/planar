@@ -8,6 +8,7 @@
 #include "TsuSdlMedia.h"
 #include "TsuPencil.h"
 #include "TsuMouse.h"
+#include "TsuNodes.h"
 
 typedef struct {
     TsuBoard* board;
@@ -15,6 +16,7 @@ typedef struct {
     TsuPencil pencil;
     TsuMouse mouse;
     bool keep_running;
+    TsuNodes* nodes;
 } TsuPlanarGame;
 
 TsuPlanarGame* newPlanarGameWith(size_t w, size_t h);
