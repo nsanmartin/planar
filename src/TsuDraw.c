@@ -5,6 +5,11 @@
 #include "TsuDraw.h"
 #include "TsuPencil.h"
 #include "TsuBoard.h"
+#include "TsuPlanarGame.h"
+#include "TsuLambda.h"
+
+
+int nodes_for_each(LamConsumer* lam, TsuNodes* ns);
 
 
 SortedPair sortedPairFrom(int a, int b) {
@@ -46,13 +51,26 @@ void tsu_draw_dot(int x, int y, TsuBoard* t, const TsuPencil* pencil) {
 }
 
 //todo: parametrize colors
-void tsu_draw_node(TsuBoard* t, Point p, int sz) {
+int tsu_draw_node(LamConsumer* lam, void* params) {
+    if (!lam || !lam->ctx || !params) { return -1; }
+    TsuPlanarGame* g = (TsuPlanarGame*) lam->ctx;
+    int sz = g->nodes->node_size;
+    Point* p = (Point*) params;
+
     for (int i = 0; i < sz; ++i) {
         for (int j = 0; j < sz; ++j) {
-            Uint32* ptr = tsuBoardAt(t, p.x + i, p.y + j);
+            Uint32* ptr = tsuBoardAt(g->board, p->x + i, p->y + j);
             if (ptr) {
                 *ptr = 28900;
             }
         }
     }
+
+    return 0;
+}
+
+int tsu_draw_points(TsuPlanarGame* g) {
+    LamConsumer lam = { .app = tsu_draw_node, .ctx = g, };
+    int error = nodes_for_each(&lam, g->nodes);
+    return error;
 }

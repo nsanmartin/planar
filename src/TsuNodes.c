@@ -3,6 +3,7 @@
 
 #define NODES_INITIAL_CAPACITY 32
 
+#include "TsuLambda.h"
 #include "TsuAlloc.h"
 
 TsuNodes* newNodes() {
@@ -45,3 +46,16 @@ int nodes_push_back(TsuNodes* ns, Point p) {
     ns->ps[ns->sz++] = p;
     return 0;
 }
+
+int nodes_for_each(LamConsumer* lam, TsuNodes* ns) {
+    Point* end = ns->ps + ns->sz;
+
+    for (Point* it = ns->ps; it < end; ++it) {
+        int error = lam->app(lam, it);
+        if (error) {
+            return error;
+        }
+    }
+    return 0;
+}
+

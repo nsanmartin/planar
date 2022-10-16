@@ -9,6 +9,7 @@ Line compute_line(int x0, int x1, int y0, int y1);
 void tsu_draw_dot(int x, int y, TsuBoard* t, const TsuPencil* pencil);
 void tsu_draw_node(TsuBoard* t, Point p, int sz);
 TsuNodes* sample_nodes();
+int tsu_draw_points(TsuPlanarGame* g);
 
 TsuPlanarGame* newPlanarGameWith(size_t w, size_t h) {
 
@@ -44,10 +45,7 @@ TsuPlanarGame* newPlanarGameWith(size_t w, size_t h) {
         .nodes = nodes
     };
 
-    //todo: move this
-    for (int i = 0; i < rv->nodes->sz; ++i) {
-        tsu_draw_node(rv->board, rv->nodes->ps[i], rv->nodes->node_size);
-    }
+    tsu_draw_points(rv);
 
     return rv;
 }
