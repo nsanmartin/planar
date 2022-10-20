@@ -82,11 +82,22 @@ void render(TsuPlanarGame* app) {
 }
 
 
+bool tsu_sdl_quit_event(const SDL_Event* e) {
+    return e->type == SDL_QUIT || (e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_q);
+}
+
+bool tsu_point_in_window(const TsuSdlMedia* m, int x, int y) {
+    return y >= 0 && y < m->dim.h && x >= 0 && x < m->dim.w;
+}
+
+bool tsu_delta_x_greater_than_delta_y(const TsuMouse* m, int x, int y) {
+    return abs(m->x-x) > abs(m->y-y);
+}
 
 int process_input(TsuPlanarGame* game) {
     SDL_Event e;
     while (SDL_PollEvent(&e)) {
-        if (e.type == SDL_QUIT || (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_q)) {
+        if (tsu_sdl_quit_event(&e)) {
             game->keep_running = false;
             return 0;
         }
@@ -95,43 +106,36 @@ int process_input(TsuPlanarGame* game) {
         bool left_button = SDL_GetMouseState( &x, &y ) & SDL_BUTTON_LEFT;
 
         if (left_button && e.type == SDL_MOUSEBUTTONDOWN) {
-            game->mouse.is_up = false;
-            game->mouse.x = x;
-            game->mouse.y = y;
 
-            if (y >= 0 && y < game->media->dim.h && x >= 0 && x < game->media->dim.w) {
+            if (tsu_point_in_window(game->media, x, y)) {
                 tsu_draw_dot(x, y, game->board, &game->pencil);
             }
+            game->mouse.is_up = false;
 
         } else if (!game->mouse.is_up && e.type == SDL_MOUSEMOTION) {
-            if (abs(game->mouse.x-x) > abs(game->mouse.y-y)) {
-                Line l = compute_line(game->mouse.x, x, game->mouse.y, y);
+            if (tsu_delta_x_greater_than_delta_y(&game->mouse, x, y)) {
                 SortedPair xs = sortedPairFrom(game->mouse.x, x);
+                Line l = compute_line(game->mouse.x, x, game->mouse.y, y);
                 for (int i = xs.min; i < xs.max; ++i) {
                     int j = l.yintercept + l.slope * i;
                     tsu_draw_dot(i, j, game->board, &game->pencil);
                 }
             } else {
                 SortedPair ys = sortedPairFrom(game->mouse.y, y);
-                if (game->mouse.x == x) {
-                    for (int i = ys.min; i < ys.max; ++i) {
-                        tsu_draw_dot(x, i, game->board, &game->pencil);
-                    }
-                } else {
-                    Line l = compute_line(game->mouse.x, x, game->mouse.y, y);
-                    for (int i = ys.min; i < ys.max; ++i) {
-                        int j = (i - l.yintercept) / l.slope;
-                        tsu_draw_dot(j, i, game->board, &game->pencil);
-                    }
+                Line l = compute_line(game->mouse.y, y, game->mouse.x, x);
+                for (int i = ys.min; i < ys.max; ++i) {
+                    int j = l.yintercept + l.slope * i;
+                    tsu_draw_dot(j, i, game->board, &game->pencil);
                 }
             }
-            game->mouse.x = x;
-            game->mouse.y = y;
 
         } 
         if (e.type == SDL_MOUSEBUTTONUP ) {
             game->mouse.is_up = true;
         }
+
+        game->mouse.x = x;
+        game->mouse.y = y;
     }
 
     return 0;
@@ -157,3 +161,4 @@ TsuNodes* sample_nodes() {
     }
     return rv;
 }
+
