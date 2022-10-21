@@ -55,11 +55,11 @@ int tsu_draw_node(LamConsumer* lam, void* params) {
     if (!lam || !lam->ctx || !params) { return -1; }
     TsuPlanarGame* g = (TsuPlanarGame*) lam->ctx;
     int sz = g->nodes->node_size;
-    Point* p = (Point*) params;
+    TsuNode* n = (TsuNode*) params;
 
     for (int i = 0; i < sz; ++i) {
         for (int j = 0; j < sz; ++j) {
-            Uint32* ptr = tsuBoardAt(g->board, p->x + i, p->y + j);
+            Uint32* ptr = tsuBoardAt(g->board, n->p.x + i, n->p.y + j);
             if (ptr) {
                 *ptr = 28900;
             }
@@ -70,6 +70,21 @@ int tsu_draw_node(LamConsumer* lam, void* params) {
 }
 
 int tsu_draw_points(TsuPlanarGame* g) {
+    LamConsumer lam = { .app = tsu_draw_node, .ctx = g, };
+    int error = nodes_for_each(&lam, g->nodes);
+    return error;
+}
+
+int tsu_draw_node_if_touched(LamConsumer* lam, void* params) {
+
+    TsuNode* n = (TsuNode*) params;
+    if (n->touched) {
+        return tsu_draw_node(lam, params);
+    }
+    return 0;
+}
+
+int tsu_draw_touched_points(TsuPlanarGame* g) {
     LamConsumer lam = { .app = tsu_draw_node, .ctx = g, };
     int error = nodes_for_each(&lam, g->nodes);
     return error;

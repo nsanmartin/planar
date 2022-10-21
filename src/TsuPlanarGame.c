@@ -10,6 +10,7 @@ void tsu_draw_dot(int x, int y, TsuBoard* t, const TsuPencil* pencil);
 void tsu_draw_node(TsuBoard* t, Point p, int sz);
 TsuNodes* sample_nodes();
 int tsu_draw_points(TsuPlanarGame* g);
+int tsu_draw_touched_points(TsuPlanarGame* g);
 
 TsuPlanarGame* newPlanarGameWith(size_t w, size_t h) {
 
@@ -136,8 +137,21 @@ int process_input(TsuPlanarGame* game) {
 
         game->mouse.x = x;
         game->mouse.y = y;
+        // -
+        if (!game->mouse.is_up) {
+            TsuNode* touched_node = NULL;
+            int error = nodes_find_touched(game->nodes, x, y, &touched_node);
+            if (error) {
+                return error;
+            }
+            if (touched_node != NULL && touched_node != game->nodes->sz + game->nodes->ps) {
+                touched_node->touched = true;
+            }
+        }
+
     }
 
+    tsu_draw_touched_points(game);
     return 0;
 }
 

@@ -7,7 +7,7 @@
 #include "TsuAlloc.h"
 
 TsuNodes* newNodes() {
-    Point* ps = tsu_malloc(NODES_INITIAL_CAPACITY * sizeof(Point));
+    TsuNode* ps = tsu_malloc(NODES_INITIAL_CAPACITY * sizeof(TsuNode));
     if (!ps) {
         return NULL;
     }
@@ -23,7 +23,6 @@ TsuNodes* newNodes() {
         .capacity = NODES_INITIAL_CAPACITY,
         .ps = ps,
         .node_size = 18, // defaut
-        .touched = false
     };
 
     return rv;
@@ -43,19 +42,57 @@ int nodes_push_back(TsuNodes* ns, Point p) {
 
         ns->capacity *= 2;
     }
-    ns->ps[ns->sz++] = p;
+    ns->ps[ns->sz++] = (TsuNode){ .p=p, .touched = false};
     return 0;
 }
 
 int nodes_for_each(LamConsumer* lam, TsuNodes* ns) {
-    Point* end = ns->ps + ns->sz;
+    TsuNode* end = ns->ps + ns->sz;
 
-    for (Point* it = ns->ps; it < end; ++it) {
+    for (TsuNode* it = ns->ps; it < end; ++it) {
         int error = lam->app(lam, it);
         if (error) {
             return error;
         }
     }
     return 0;
+}
+
+//todo: use |n - (x,y)| < r
+bool node_contains_point(Point* n, int sz, int x, int y) {
+    return x >= n->x - sz && x <= n->x + sz
+        && y >= n->y - sz && y <= n->y + sz;
+}
+
+struct LamNodeContainsPointCtx { int sz, x, y; };
+
+int lam_node_contains_point(LamPredicate* lam, void* data) {
+    Point* node = (Point*) data;
+    struct LamNodeContainsPointCtx* ctx = (struct LamNodeContainsPointCtx*) lam->ctx;
+    lam->pred = node_contains_point(node, ctx->sz, ctx->x, ctx->y);
+    return 0;
+}
+
+
+int nodes_find(LamPredicate * lam, const TsuNodes* ns, TsuNode** res) {
+    TsuNode* end = ns->ps + ns->sz;
+    for (*res = ns->ps; *res < end; ++*res) {
+        int error = lam->app(lam, *res);
+        if (error) {
+            return error;
+        }
+        if (lam->pred) {
+            return 0;
+        }
+    }
+    return 0;
+}
+
+int nodes_find_touched(const TsuNodes* ns, int x, int y, TsuNode** res) {
+
+    struct LamNodeContainsPointCtx ctx = { .sz=ns->node_size, .x=x, .y=y };
+    LamPredicate lam = { .app=lam_node_contains_point, .ctx=(void*)&ctx, .pred=false };
+    return nodes_find(&lam, ns, res);
+
 }
 
