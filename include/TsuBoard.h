@@ -14,8 +14,5 @@ typedef struct TsuBoard {
 } TsuBoard;
 
 
-TsuBoard* newTsuBoard(size_t w, size_t h); 
-void freeTsuBoard(TsuBoard* board);
-
 Uint32* tsuBoardAt(TsuBoard* board, int x, int y);
 #endif

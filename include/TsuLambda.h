@@ -4,7 +4,7 @@
 typedef struct Lambda Lambda;
 
 typedef struct Lambda {
-    void (*app)(Lambda*, void*);
+    int (*app)(Lambda*, void*);
     void* value;
     void* ctx;
 } Lambda;
@@ -23,4 +23,6 @@ typedef struct LamPredicate {
     void* ctx;
     bool test;
 } LamPredicate;
+
+
 #endif

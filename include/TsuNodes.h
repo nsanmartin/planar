@@ -15,11 +15,5 @@ typedef struct {
     int node_size;
 } TsuNodes;
 
-int nodes_push_back(TsuNodes* ns, Point p);
-TsuNodes* newNodes();
-void freeNodes(TsuNodes* ns);
-
-bool node_contains_point(Point* n, int sz, int x, int y);
-int nodes_find_touched(const TsuNodes* ns, int x, int y, TsuNode** res);
 #endif
 

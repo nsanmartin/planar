@@ -1,7 +1,5 @@
 #include "SDL.h"
 #include "TsuPoint.h"
-//#include <dibmedia.h>
-//#include <dibmem.h>
 
 #include "TsuAlloc.h"
 #include "TsuSdlMedia.h"
@@ -68,26 +66,3 @@ void destroy_sdl_media(TsuSdlMedia* media) {
     SDL_DestroyWindow(media->window); 
 }
 
-void freeTsuSdlMedia(TsuSdlMedia* media) {
-    SDL_DestroyTexture(media->texture);
-    SDL_DestroyRenderer(media->renderer);
-    SDL_DestroyWindow(media->window); 
-    tsu_free(media);
-}
-
-
-TsuSdlMedia* newTsuSdlMedia(Dimensions dim) {
-
-    TsuSdlMedia* rv = tsu_malloc(sizeof(TsuSdlMedia));
-    if (!rv) {
-        return NULL;
-    }
-
-    rv->dim = dim;
-
-    if(sdl_media_init(rv) != 0) {
-        tsu_free(rv);
-        return NULL;
-    }
-    return rv;
-}

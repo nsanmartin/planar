@@ -14,8 +14,6 @@ typedef struct {
     SDL_Texture * texture;
 } TsuSdlMedia;
 
-TsuSdlMedia* newTsuSdlMedia(Dimensions dim);
-void freeTsuSdlMedia(TsuSdlMedia* media);
 
 #endif
 

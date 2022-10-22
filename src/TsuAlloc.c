@@ -1,9 +1,10 @@
 #include <stdlib.h>
 #include "TsuAlloc.h"
 
+// #define TSU_MEM_TEST
 #ifdef TSU_MEM_TEST
 #include <stdio.h>
-#define MAX_MALLOC_TIMES 4
+#define MAX_MALLOC_TIMES 1
 int tsu_malloc_times = MAX_MALLOC_TIMES;
 int tsu_malloc_calls = 0;
 int tsu_free_calls = 0;

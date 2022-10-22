@@ -14,7 +14,4 @@ typedef struct {
     Point* end;
 } VecPoints;
 
-bool point_eq(Point p, Point q) ;
-
-// VecPoints* newVecPoints(size_t cap);
 #endif

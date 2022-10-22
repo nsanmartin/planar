@@ -10,17 +10,27 @@
 #include "TsuMouse.h"
 #include "TsuNodes.h"
 
+typedef enum { GameStateTitle, GameStatePlaying, GameStateEnded } GameState;
+
+typedef struct TsuPlanarGame TsuPlanarGame;
+
 typedef struct {
+    int (*process_input) (TsuPlanarGame*);
+    int (*update) (TsuPlanarGame*);
+    //int (*render) (TsuPlanarGame*);
+} GameMethods;
+
+typedef struct TsuPlanarGame{
     TsuBoard board;
     TsuSdlMedia media;
     TsuPencil pencil;
     TsuMouse mouse;
     bool keep_running;
     TsuNodes nodes;
+    GameState state;
+    GameMethods methods;
 } TsuPlanarGame;
 
-TsuPlanarGame* newPlanarGameWith(size_t w, size_t h);
-void freePlanarGame(TsuPlanarGame* app);
 
 int init_planar_game(TsuPlanarGame* g, size_t w, size_t h);
 void destroy_planar_game(TsuPlanarGame* g);
