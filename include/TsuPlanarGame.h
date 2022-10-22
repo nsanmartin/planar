@@ -11,16 +11,19 @@
 #include "TsuNodes.h"
 
 typedef struct {
-    TsuBoard* board;
-    TsuSdlMedia* media;
+    TsuBoard board;
+    TsuSdlMedia media;
     TsuPencil pencil;
     TsuMouse mouse;
     bool keep_running;
-    TsuNodes* nodes;
+    TsuNodes nodes;
 } TsuPlanarGame;
 
 TsuPlanarGame* newPlanarGameWith(size_t w, size_t h);
 void freePlanarGame(TsuPlanarGame* app);
+
+int init_planar_game(TsuPlanarGame* g, size_t w, size_t h);
+void destroy_planar_game(TsuPlanarGame* g);
 
 #endif
 

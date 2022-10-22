@@ -3,10 +3,8 @@
 #include <math.h>
 #include <time.h>
 #include "SDL.h"
+#include "TsuPlanarGame.h"
 
-typedef struct TsuPlanarGame TsuPlanarGame;
-TsuPlanarGame* newPlanarGameWith(size_t w, size_t h);
-void freePlanarGame(TsuPlanarGame* game);
 int update(TsuPlanarGame* game);
 void render(TsuPlanarGame* game);
 int process_input(TsuPlanarGame* game);
@@ -24,10 +22,11 @@ long get_time_millis() {
 }
 
 
-int main() {
-    TsuPlanarGame* game = newPlanarGameWith(WINDOW_WIDTH, WINDOW_HEIGHT);
-    if (game == NULL) {
+int run_game(TsuPlanarGame* game) {
+    int error = init_planar_game(game, WINDOW_WIDTH, WINDOW_HEIGHT);
+    if (error) {
         fprintf(stderr, "Could not load game, exiting.\n");
+        return error;
     } else {
         long previous = get_time_millis();
         long lag = 0;
@@ -43,8 +42,14 @@ int main() {
             render(game);
         }
 
-        freePlanarGame(game);
+        destroy_planar_game(game);
     }
+    return 0;
+}
+
+int main() {
+    TsuPlanarGame game;
+    run_game(&game);
 
     return 0;
 }

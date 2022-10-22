@@ -54,14 +54,14 @@ void tsu_draw_dot(int x, int y, TsuBoard* t, const TsuPencil* pencil) {
 int tsu_draw_node(LamConsumer* lam, void* params) {
     if (!lam || !lam->ctx || !params) { return -1; }
     TsuPlanarGame* g = (TsuPlanarGame*) lam->ctx;
-    int sz = g->nodes->node_size;
+    int sz = g->nodes.node_size;
     Pair* pair = params;
     TsuNode* n = (TsuNode*) pair->first;
     uint32_t* pcolor = pair->second;
 
     for (int i = 0; i < sz; ++i) {
         for (int j = 0; j < sz; ++j) {
-            Uint32* ptr = tsuBoardAt(g->board, n->p.x + i, n->p.y + j);
+            Uint32* ptr = tsuBoardAt(&g->board, n->p.x + i, n->p.y + j);
             if (ptr) {
                 *ptr = *pcolor;
             }
@@ -74,7 +74,7 @@ int tsu_draw_node(LamConsumer* lam, void* params) {
 int tsu_draw_points(TsuPlanarGame* g) {
     LamConsumer lam = { .app = tsu_draw_node, .ctx = g, };
     uint32_t color = 0x70e4;
-    Pair pair = { .first=g->nodes, .second=&color};
+    Pair pair = { .first=&g->nodes, .second=&color};
     int error = nodes_for_each(&lam, &pair);
     return error;
 }
@@ -97,7 +97,7 @@ int tsu_draw_touched_points(TsuPlanarGame* g) {
     LamConsumer lam = { .app = tsu_draw_node_if_touched , .ctx = g, };
 
     uint32_t color = 0x179e4;
-    Pair pair = { .first=g->nodes, .second=&color};
+    Pair pair = { .first=&g->nodes, .second=&color};
     int error = nodes_for_each(&lam, &pair);
     return error;
 }

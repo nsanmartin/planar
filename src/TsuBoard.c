@@ -2,8 +2,22 @@
 
 #include "TsuBoard.h"
 
+int init_board(TsuBoard* board, size_t w, size_t h) {
+    Uint32* data = tsu_malloc(w * h * sizeof(Uint32));
+    if (!data) { return -1; }
+    memset(data, 255, w * h * sizeof(Uint32));
+    *board = (TsuBoard) {
+        .data = data,
+        .w = w,
+        .h = h,
+    };
 
-TsuBoard tsu_board = {0};
+    return 0;
+}
+
+void destroy_board(TsuBoard* board) {
+    tsu_free(board->data);
+}
 
 //todo: parametrize colors
 TsuBoard* newTsuBoard(size_t w, size_t h) {

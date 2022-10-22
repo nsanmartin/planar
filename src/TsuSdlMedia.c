@@ -57,6 +57,17 @@ int sdl_media_init(TsuSdlMedia* media) {
     return 0;
 }
 
+int init_sdl_media(TsuSdlMedia* media, size_t w, size_t h) {
+    media->dim = (Dimensions){.w=w, .h=h};
+    return sdl_media_init(media);
+}
+
+void destroy_sdl_media(TsuSdlMedia* media) {
+    SDL_DestroyTexture(media->texture);
+    SDL_DestroyRenderer(media->renderer);
+    SDL_DestroyWindow(media->window); 
+}
+
 void freeTsuSdlMedia(TsuSdlMedia* media) {
     SDL_DestroyTexture(media->texture);
     SDL_DestroyRenderer(media->renderer);

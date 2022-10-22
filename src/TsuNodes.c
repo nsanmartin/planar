@@ -7,6 +7,36 @@
 #include "TsuAlloc.h"
 #include "TsuPair.h"
 
+int init_nodes(TsuNodes* nodes) {
+    TsuNode* ps = tsu_malloc(NODES_INITIAL_CAPACITY * sizeof(TsuNode));
+    if (!ps) {
+        return -1;
+    }
+
+    *nodes = (TsuNodes) {
+        .sz = 0,
+        .capacity = NODES_INITIAL_CAPACITY,
+        .ps = ps,
+        .node_size = 18, // defaut
+    };
+
+    int error = nodes_push_back(nodes, (Point){10, 10});
+    if (error) {
+        tsu_free(nodes->ps);
+        return error;
+    }
+    error = nodes_push_back(nodes, (Point){100, 190});
+    if (error) {
+        tsu_free(nodes->ps);
+        return error;
+    }
+    return 0;
+}
+
+void destroy_nodes(TsuNodes* nodes) {
+    tsu_free(nodes->ps);
+}
+
 TsuNodes* newNodes() {
     TsuNode* ps = tsu_malloc(NODES_INITIAL_CAPACITY * sizeof(TsuNode));
     if (!ps) {

@@ -11,51 +11,91 @@ void tsu_draw_node(TsuBoard* t, Point p, int sz);
 TsuNodes* sample_nodes();
 int tsu_draw_points(TsuPlanarGame* g);
 int tsu_draw_touched_points(TsuPlanarGame* g);
+int init_sdl_media(TsuSdlMedia* media, int w, int h);
+int init_board(TsuBoard* board, size_t w, size_t h);
+void destroy_board(TsuBoard* board);
+int init_nodes(TsuNodes* nodes);
+void destroy_nodes(TsuNodes* nodes);
+void destroy_sdl_media(TsuSdlMedia* media);
 
-TsuPlanarGame* newPlanarGameWith(size_t w, size_t h) {
+int init_planar_game(TsuPlanarGame* g, size_t w, size_t h) {
+   int error = init_board(&g->board, w, h); 
+   if (error) {
+       return error;
+   }
 
-    TsuBoard* board = newTsuBoard(w, h);
-    if (!board) { return NULL; }
-    TsuSdlMedia* media = newTsuSdlMedia((Dimensions){ .w = w, .h = h});
-    if (!media) {
-        freeTsuBoard(board);
-        return NULL;
-    }
+   error = init_sdl_media(&g->media, w, h);
+   if (error) {
+       destroy_board(&g->board);
+       return error;
+   }
 
-    TsuNodes* nodes = sample_nodes();
-    if (!nodes) {
-        freeTsuBoard(board);
-        freeTsuSdlMedia(media);
-        return NULL;
-    }
+   error = init_nodes(&g->nodes);
+   if (error) {
+       destroy_sdl_media(&g->media);
+       destroy_board(&g->board);
+       return error;
+   }
 
-    TsuPlanarGame* rv = tsu_malloc(sizeof(TsuPlanarGame));
-    if (!rv) {
-        freeNodes(nodes);
-        freeTsuBoard(board);
-        freeTsuSdlMedia(media);
-        return NULL;
-    }
+   g->keep_running = true;
+   g->mouse = (TsuMouse) { .is_up = true, .x = 0, .y = 0 };
+   g->pencil = (TsuPencil) { .sz = 4 };
 
-    *rv = (TsuPlanarGame) {
-        .board = board,
-        .media = media,
-        .pencil = { .sz = 4 },
-        .mouse = { .is_up = true, .x = 0, .y = 0 },
-        .keep_running = true,
-        .nodes = nodes
-    };
-
-    tsu_draw_points(rv);
-
-    return rv;
+   //todo: take outside
+    error = tsu_draw_points(g);
+    return error;
 }
 
-void freePlanarGame(TsuPlanarGame* app) {
-    freeTsuBoard(app->board);
-    freeTsuSdlMedia(app->media);
-    tsu_free(app);
+void destroy_planar_game(TsuPlanarGame* g) {
+   destroy_sdl_media(&g->media);
+   destroy_board(&g->board);
+   destroy_nodes(&g->nodes);
 }
+
+// TsuPlanarGame* newPlanarGameWith(size_t w, size_t h) {
+// 
+//     TsuBoard* board = newTsuBoard(w, h);
+//     if (!board) { return NULL; }
+//     TsuSdlMedia* media = newTsuSdlMedia((Dimensions){ .w = w, .h = h});
+//     if (!media) {
+//         freeTsuBoard(board);
+//         return NULL;
+//     }
+// 
+//     TsuNodes* nodes = sample_nodes();
+//     if (!nodes) {
+//         freeTsuBoard(board);
+//         freeTsuSdlMedia(media);
+//         return NULL;
+//     }
+// 
+//     TsuPlanarGame* rv = tsu_malloc(sizeof(TsuPlanarGame));
+//     if (!rv) {
+//         freeNodes(nodes);
+//         freeTsuBoard(board);
+//         freeTsuSdlMedia(media);
+//         return NULL;
+//     }
+// 
+//     *rv = (TsuPlanarGame) {
+//         .board = board,
+//         .media = media,
+//         .pencil = { .sz = 4 },
+//         .mouse = { .is_up = true, .x = 0, .y = 0 },
+//         .keep_running = true,
+//         .nodes = nodes
+//     };
+// 
+//     tsu_draw_points(rv);
+// 
+//     return rv;
+// }
+
+// void freePlanarGame(TsuPlanarGame* app) {
+//     freeTsuBoard(app->board);
+//     freeTsuSdlMedia(app->media);
+//     tsu_free(app);
+// }
 
 int update(TsuPlanarGame* game) {
     //todo: move to update & check this docs:
@@ -68,7 +108,7 @@ int update(TsuPlanarGame* game) {
      * while this function will work with streaming textures, for optimization
      * reasons you may not get the pixels back if you lock the texture afterward.
      */
-    SDL_UpdateTexture(game->media->texture, NULL, game->board->data, 640 * sizeof(Uint32));
+    SDL_UpdateTexture(game->media.texture, NULL, game->board.data, 640 * sizeof(Uint32));
     return 0;
 }
 
@@ -78,8 +118,8 @@ void render(TsuPlanarGame* app) {
 
     //todo: is this needed?
     //SDL_RenderClear(app->media->renderer);
-    SDL_RenderCopy(app->media->renderer, app->media->texture, NULL, NULL);
-    SDL_RenderPresent(app->media->renderer);
+    SDL_RenderCopy(app->media.renderer, app->media.texture, NULL, NULL);
+    SDL_RenderPresent(app->media.renderer);
 }
 
 
@@ -108,8 +148,8 @@ int process_input(TsuPlanarGame* game) {
 
         if (left_button && e.type == SDL_MOUSEBUTTONDOWN) {
 
-            if (tsu_point_in_window(game->media, x, y)) {
-                tsu_draw_dot(x, y, game->board, &game->pencil);
+            if (tsu_point_in_window(&game->media, x, y)) {
+                tsu_draw_dot(x, y, &game->board, &game->pencil);
             }
             game->mouse.is_up = false;
 
@@ -119,14 +159,14 @@ int process_input(TsuPlanarGame* game) {
                 Line l = compute_line(game->mouse.x, x, game->mouse.y, y);
                 for (int i = xs.min; i < xs.max; ++i) {
                     int j = l.yintercept + l.slope * i;
-                    tsu_draw_dot(i, j, game->board, &game->pencil);
+                    tsu_draw_dot(i, j, &game->board, &game->pencil);
                 }
             } else {
                 SortedPair ys = sortedPairFrom(game->mouse.y, y);
                 Line l = compute_line(game->mouse.y, y, game->mouse.x, x);
                 for (int i = ys.min; i < ys.max; ++i) {
                     int j = l.yintercept + l.slope * i;
-                    tsu_draw_dot(j, i, game->board, &game->pencil);
+                    tsu_draw_dot(j, i, &game->board, &game->pencil);
                 }
             }
 
@@ -140,11 +180,11 @@ int process_input(TsuPlanarGame* game) {
 
         if (!game->mouse.is_up) {
             TsuNode* touched_node = NULL;
-            int error = nodes_find_touched(game->nodes, x, y, &touched_node);
+            int error = nodes_find_touched(&game->nodes, x, y, &touched_node);
             if (error) {
                 return error;
             }
-            if (touched_node != NULL && touched_node != game->nodes->sz + game->nodes->ps) {
+            if (touched_node != NULL && touched_node != game->nodes.sz + game->nodes.ps) {
                 touched_node->touched = true;
             }
         }
