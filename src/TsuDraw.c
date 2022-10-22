@@ -10,7 +10,7 @@
 #include "TsuPair.h"
 
 
-int nodes_for_each(LamConsumer* lam, Pair* pair);
+int nodes_for_each(LamConsumer* lam, void* beg, void* end, LamPredicate* pred);
 
 
 SortedPair sortedPairFrom(int a, int b) {
@@ -51,13 +51,13 @@ void tsu_draw_dot(int x, int y, TsuBoard* t, const TsuPencil* pencil) {
     }
 }
 
-int tsu_draw_node(LamConsumer* lam, void* params) {
-    if (!lam || !lam->ctx || !params) { return -1; }
-    TsuPlanarGame* g = (TsuPlanarGame*) lam->ctx;
+int lam_draw_node(LamConsumer* lam, void* arg) {
+    if (!lam || !lam->ctx || !arg) { return -1; }
+    Pair* ctx = lam->ctx;
+    TsuPlanarGame* g = ctx->first;
+    uint32_t* pcolor = ctx->second;
     int sz = g->nodes.node_size;
-    Pair* pair = params;
-    TsuNode* n = (TsuNode*) pair->first;
-    uint32_t* pcolor = pair->second;
+    TsuNode* n = arg;
 
     for (int i = 0; i < sz; ++i) {
         for (int j = 0; j < sz; ++j) {
@@ -72,33 +72,25 @@ int tsu_draw_node(LamConsumer* lam, void* params) {
 }
 
 int tsu_draw_points(TsuPlanarGame* g) {
-    LamConsumer lam = { .app = tsu_draw_node, .ctx = g, };
-    uint32_t color = 0x70e4;
-    Pair pair = { .first=&g->nodes, .second=&color};
-    int error = nodes_for_each(&lam, &pair);
+    uint32_t color = 0x5da7d8;
+    Pair ctx = { .first = g, .second = &color };
+    LamConsumer lam = { .app = lam_draw_node, .ctx = &ctx };
+    int error = nodes_for_each(&lam, g->nodes.ps, g->nodes.ps+g->nodes.sz, NULL);
     return error;
 }
 
-int tsu_draw_node_if_touched(LamConsumer* lam, void* params) {
-
-    Pair* pair = params;
-    TsuNode* n = pair->first;
-
-    if (n->touched) {
-        uint32_t color = 0x11a475;
-        Pair pair = { .first=n, .second=&color};
-        return tsu_draw_node(lam, &pair);
-    }
+int node_is_touched(LamPredicate* pred, void* n) {
+    pred->test = ((TsuNode*)n)->touched;
     return 0;
 }
 
-
 int tsu_draw_touched_points(TsuPlanarGame* g) {
-    LamConsumer lam = { .app = tsu_draw_node_if_touched , .ctx = g, };
+    uint32_t color = 0x749f82;
+    Pair ctx = { .first=g, .second=&color};
+    LamConsumer lam = { .app = lam_draw_node , .ctx = &ctx, };
 
-    uint32_t color = 0x179e4;
-    Pair pair = { .first=&g->nodes, .second=&color};
-    int error = nodes_for_each(&lam, &pair);
+    LamPredicate pred = { .app=node_is_touched, .test = false };
+    int error = nodes_for_each(&lam, g->nodes.ps, g->nodes.ps+g->nodes.sz, &pred);
     return error;
 }
 

@@ -21,6 +21,6 @@ typedef struct LamPredicate LamPredicate;
 typedef struct LamPredicate {
     int (*app)(LamPredicate*, void*);
     void* ctx;
-    bool pred;
+    bool test;
 } LamPredicate;
 #endif

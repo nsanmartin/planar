@@ -1,3 +1,4 @@
+#include <time.h>
 #include <SDL.h>
 
 #include <TsuPlanarGame.h>
@@ -7,7 +8,7 @@
 SortedPair sortedPairFrom(int a, int b);
 Line compute_line(int x0, int x1, int y0, int y1);
 void tsu_draw_dot(int x, int y, TsuBoard* t, const TsuPencil* pencil);
-void tsu_draw_node(TsuBoard* t, Point p, int sz);
+void lam_draw_node(TsuBoard* t, Point p, int sz);
 TsuNodes* sample_nodes();
 int tsu_draw_points(TsuPlanarGame* g);
 int tsu_draw_touched_points(TsuPlanarGame* g);
@@ -17,8 +18,10 @@ void destroy_board(TsuBoard* board);
 int init_nodes(TsuNodes* nodes);
 void destroy_nodes(TsuNodes* nodes);
 void destroy_sdl_media(TsuSdlMedia* media);
+int nodes_append_rand(TsuPlanarGame* g, size_t n);
 
 int init_planar_game(TsuPlanarGame* g, size_t w, size_t h) {
+   srand(time(NULL));
    int error = init_board(&g->board, w, h); 
    if (error) {
        return error;
@@ -37,6 +40,8 @@ int init_planar_game(TsuPlanarGame* g, size_t w, size_t h) {
        return error;
    }
 
+   error = nodes_append_rand(g, 3);
+
    g->keep_running = true;
    g->mouse = (TsuMouse) { .is_up = true, .x = 0, .y = 0 };
    g->pencil = (TsuPencil) { .sz = 4 };
@@ -52,52 +57,8 @@ void destroy_planar_game(TsuPlanarGame* g) {
    destroy_nodes(&g->nodes);
 }
 
-// TsuPlanarGame* newPlanarGameWith(size_t w, size_t h) {
-// 
-//     TsuBoard* board = newTsuBoard(w, h);
-//     if (!board) { return NULL; }
-//     TsuSdlMedia* media = newTsuSdlMedia((Dimensions){ .w = w, .h = h});
-//     if (!media) {
-//         freeTsuBoard(board);
-//         return NULL;
-//     }
-// 
-//     TsuNodes* nodes = sample_nodes();
-//     if (!nodes) {
-//         freeTsuBoard(board);
-//         freeTsuSdlMedia(media);
-//         return NULL;
-//     }
-// 
-//     TsuPlanarGame* rv = tsu_malloc(sizeof(TsuPlanarGame));
-//     if (!rv) {
-//         freeNodes(nodes);
-//         freeTsuBoard(board);
-//         freeTsuSdlMedia(media);
-//         return NULL;
-//     }
-// 
-//     *rv = (TsuPlanarGame) {
-//         .board = board,
-//         .media = media,
-//         .pencil = { .sz = 4 },
-//         .mouse = { .is_up = true, .x = 0, .y = 0 },
-//         .keep_running = true,
-//         .nodes = nodes
-//     };
-// 
-//     tsu_draw_points(rv);
-// 
-//     return rv;
-// }
-
-// void freePlanarGame(TsuPlanarGame* app) {
-//     freeTsuBoard(app->board);
-//     freeTsuSdlMedia(app->media);
-//     tsu_free(app);
-// }
-
 int update(TsuPlanarGame* game) {
+    tsu_draw_touched_points(game);
     //todo: move to update & check this docs:
     /**
      * this is a fairly slow function, intended for use with static textures that
@@ -139,6 +100,11 @@ int process_input(TsuPlanarGame* game) {
     SDL_Event e;
     while (SDL_PollEvent(&e)) {
         if (tsu_sdl_quit_event(&e)) {
+            game->keep_running = false;
+            return 0;
+        }
+        if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_n) {
+            //todo: next graph
             game->keep_running = false;
             return 0;
         }
@@ -191,28 +157,9 @@ int process_input(TsuPlanarGame* game) {
 
     }
 
-    tsu_draw_touched_points(game);
+
     return 0;
 }
 
 bool keep_running(const TsuPlanarGame* game) { return game->keep_running; }
-
-
-
-TsuNodes* sample_nodes() {
-    TsuNodes* rv = newNodes();
-    if (!rv) { return NULL; }
-    int error = 0;
-    error = nodes_push_back(rv, (Point){10, 10});
-    if (error) {
-        freeNodes(rv);
-        return NULL;
-    }
-    error = nodes_push_back(rv, (Point){100, 190});
-    if (error) {
-        freeNodes(rv);
-        return NULL;
-    }
-    return rv;
-}
 
