@@ -5,6 +5,7 @@
 
 #include "TsuLambda.h"
 #include "TsuAlloc.h"
+#include "TsuPair.h"
 
 TsuNodes* newNodes() {
     TsuNode* ps = tsu_malloc(NODES_INITIAL_CAPACITY * sizeof(TsuNode));
@@ -46,11 +47,13 @@ int nodes_push_back(TsuNodes* ns, Point p) {
     return 0;
 }
 
-int nodes_for_each(LamConsumer* lam, TsuNodes* ns) {
+int nodes_for_each(LamConsumer* lam, Pair* pair) {
+    TsuNodes* ns = pair->first;
     TsuNode* end = ns->ps + ns->sz;
 
     for (TsuNode* it = ns->ps; it < end; ++it) {
-        int error = lam->app(lam, it);
+        Pair q = { .first=it, .second=pair->second};
+        int error = lam->app(lam, &q);
         if (error) {
             return error;
         }

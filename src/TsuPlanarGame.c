@@ -137,7 +137,7 @@ int process_input(TsuPlanarGame* game) {
 
         game->mouse.x = x;
         game->mouse.y = y;
-        // -
+
         if (!game->mouse.is_up) {
             TsuNode* touched_node = NULL;
             int error = nodes_find_touched(game->nodes, x, y, &touched_node);

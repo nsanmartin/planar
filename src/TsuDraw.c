@@ -7,9 +7,10 @@
 #include "TsuBoard.h"
 #include "TsuPlanarGame.h"
 #include "TsuLambda.h"
+#include "TsuPair.h"
 
 
-int nodes_for_each(LamConsumer* lam, TsuNodes* ns);
+int nodes_for_each(LamConsumer* lam, Pair* pair);
 
 
 SortedPair sortedPairFrom(int a, int b) {
@@ -50,18 +51,19 @@ void tsu_draw_dot(int x, int y, TsuBoard* t, const TsuPencil* pencil) {
     }
 }
 
-//todo: parametrize colors
 int tsu_draw_node(LamConsumer* lam, void* params) {
     if (!lam || !lam->ctx || !params) { return -1; }
     TsuPlanarGame* g = (TsuPlanarGame*) lam->ctx;
     int sz = g->nodes->node_size;
-    TsuNode* n = (TsuNode*) params;
+    Pair* pair = params;
+    TsuNode* n = (TsuNode*) pair->first;
+    uint32_t* pcolor = pair->second;
 
     for (int i = 0; i < sz; ++i) {
         for (int j = 0; j < sz; ++j) {
             Uint32* ptr = tsuBoardAt(g->board, n->p.x + i, n->p.y + j);
             if (ptr) {
-                *ptr = 28900;
+                *ptr = *pcolor;
             }
         }
     }
@@ -71,21 +73,32 @@ int tsu_draw_node(LamConsumer* lam, void* params) {
 
 int tsu_draw_points(TsuPlanarGame* g) {
     LamConsumer lam = { .app = tsu_draw_node, .ctx = g, };
-    int error = nodes_for_each(&lam, g->nodes);
+    uint32_t color = 0x70e4;
+    Pair pair = { .first=g->nodes, .second=&color};
+    int error = nodes_for_each(&lam, &pair);
     return error;
 }
 
 int tsu_draw_node_if_touched(LamConsumer* lam, void* params) {
 
-    TsuNode* n = (TsuNode*) params;
+    Pair* pair = params;
+    TsuNode* n = pair->first;
+
     if (n->touched) {
-        return tsu_draw_node(lam, params);
+        uint32_t color = 0x11a475;
+        Pair pair = { .first=n, .second=&color};
+        return tsu_draw_node(lam, &pair);
     }
     return 0;
 }
 
+
 int tsu_draw_touched_points(TsuPlanarGame* g) {
-    LamConsumer lam = { .app = tsu_draw_node, .ctx = g, };
-    int error = nodes_for_each(&lam, g->nodes);
+    LamConsumer lam = { .app = tsu_draw_node_if_touched , .ctx = g, };
+
+    uint32_t color = 0x179e4;
+    Pair pair = { .first=g->nodes, .second=&color};
+    int error = nodes_for_each(&lam, &pair);
     return error;
 }
+
